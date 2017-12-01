@@ -29,31 +29,33 @@ class WishOrderTracker(private val wish: WishSite) {
     }
 
     private fun checkpoints() {
-        checkpointListener.forEach({
-            listener ->
-            val (history, error) = wish.orderHistory()
+        val (history, error) = wish.orderHistory()
 
-            if (error != null) {
-                throw IllegalStateException(error)
-            }
+        if (error != null) {
+            println(error)
+            return
+        }
 
-            history?.orders?.forEach {
-                it.items.forEach({
-                    item ->
-                    if (item.checkpoints.isNotEmpty()) {
-                        val localMessage = latestItemMessages[item.name]
+        history?.orders?.forEach {
+            it.items.forEach({
+                item ->
+                if (item.checkpoints.isNotEmpty()) {
+                    val localMessage = latestItemMessages[item.name]
 
-                        val checkpoint = item.checkpoints[item.checkpoints.size - 1]
-                        val remoteMessage = checkpoint.message
+                    val checkpoint = item.checkpoints[item.checkpoints.size - 1]
+                    val remoteMessage = checkpoint.message
 
-                        if (localMessage == null || localMessage != remoteMessage) {
-                            latestItemMessages[item.name] = remoteMessage
+                    if (localMessage == null || localMessage != remoteMessage) {
+                        latestItemMessages[item.name] = remoteMessage
+
+                        checkpointListener.forEach({
+                            listener ->
                             listener(item, checkpoint)
-                        }
+                        })
                     }
-                })
-            }
-        })
+                }
+            })
+        }
     }
 
     fun cancel() {
