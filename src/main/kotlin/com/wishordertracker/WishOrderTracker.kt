@@ -29,6 +29,10 @@ class WishOrderTracker(private val wish: WishSite) {
     }
 
     private fun checkpoints() {
+        if (checkpointListener.isEmpty()) {
+            return
+        }
+
         val (history, error) = wish.orderHistory()
 
         if (error != null) {
